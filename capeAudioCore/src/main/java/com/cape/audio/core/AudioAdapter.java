@@ -75,11 +75,12 @@ public class AudioAdapter
       int bytesRead = 0;
       Header h;
       while ((h = bitstream.readFrame()) != null) {
-        HeaderTimeData timeData = new HeaderTimeData(null);
+        HeaderTimeData timeData = new HeaderTimeData();
         bytesRead += h.calculate_framesize();
         timeData.bytesAccumulated = bytesRead;
         ms = (int)(ms + h.ms_per_frame());
-        HeaderTimeData tmp248_246 = timeData; tmp248_246.framesAccumulated = ((int)(tmp248_246.framesAccumulated + ms * 44.100000000000001D));
+        HeaderTimeData tmp248_246 = timeData; 
+        tmp248_246.framesAccumulated = ((int)(tmp248_246.framesAccumulated + ms * 44.100000000000001D));
         bitstream.closeFrame();
         this.headerTimeData.add(timeData);
       }
