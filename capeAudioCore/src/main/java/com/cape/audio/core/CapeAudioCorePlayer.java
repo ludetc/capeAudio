@@ -12,6 +12,9 @@ import java.util.logging.Logger;
 import javafx.application.Application;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.concurrent.Service;
+import javafx.concurrent.Task;
+import javafx.concurrent.WorkerStateEvent;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
@@ -40,36 +43,42 @@ import javazoom.jl.decoder.BitstreamException;
 public class CapeAudioCorePlayer extends Application {
 
     private static final String titleHead = "Cape Audio ";
-    private final HBox spectrumBox = new HBox();
     private final AudioAdapter audioAdapter = new AudioAdapter();
     private AudioInputStream convertedAudioInputStream = null;
     private final WaveformBox waveBox = new WaveformBox();
     private Stage primaryStage = null;
     private MediaPlayer mediaPlayer = null;
+    private WaveService waveService = new WaveService();
+
 
     public HBox getMediaBar() {
         
         final EventHandler<ActionEvent> backAction = new EventHandler<ActionEvent>() {
+            @Override
                 public void handle(ActionEvent e) {
                     mediaPlayer.seek(Duration.ZERO);
                 }
             };
             final EventHandler<ActionEvent> stopAction = new EventHandler<ActionEvent>() {
+                @Override
                 public void handle(ActionEvent e) {
                     mediaPlayer.stop();
                 }
             };
             final EventHandler<ActionEvent> playAction = new EventHandler<ActionEvent>() {
+                @Override
                 public void handle(ActionEvent e) {
                     mediaPlayer.play();
                 }
             };
             final EventHandler<ActionEvent> pauseAction = new EventHandler<ActionEvent>() {
+                @Override
                 public void handle(ActionEvent e) {
                     mediaPlayer.pause();
                 }
             };
             final EventHandler<ActionEvent> forwardAction = new EventHandler<ActionEvent>() {
+                @Override
                 public void handle(ActionEvent e) {
                     Duration currentTime = mediaPlayer.getCurrentTime();
                     mediaPlayer.seek(Duration.seconds(currentTime.toSeconds() + 0.1));
@@ -121,9 +130,6 @@ public class CapeAudioCorePlayer extends Application {
         mainBorderPane.setTop(getMediaBar());
         mainBorderPane.setCenter(waveBox);
 
-        spectrumBox.setAlignment(Pos.CENTER);
-        spectrumBox.setId("spectrum");
-
         VBox root = new VBox();
         Scene scene = new Scene(root, 800, 500);
         root.getChildren().addAll(getMenuBar(), mainBorderPane);
@@ -137,27 +143,46 @@ public class CapeAudioCorePlayer extends Application {
 
         primaryStage.heightProperty().addListener(changeListener);
         primaryStage.widthProperty().addListener(changeListener);
+        
+        waveService.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
+
+            @Override
+            public void handle(WorkerStateEvent t) {
+                waveBox.redraw();
+            }
+        
+        
+        });
+        
 
     }
 
     private class OverallSizeChangeListener implements ChangeListener {
         @Override
         public void changed(ObservableValue ov, Object t, Object t1) {
-            try {
-                waveBox.redraw();
-            } catch (UnsupportedAudioFileException | IOException ex) {
-                Logger.getLogger(CapeAudioCorePlayer.class.getName()).log(Level.SEVERE, null, ex);
-            }
+                redrawSpectrum();
         }
     }
 
-    private void redrawSpectrum() {
-        try {
-            waveBox.redraw();
-        } catch (UnsupportedAudioFileException | IOException ex) {
-            Logger.getLogger(CapeAudioCorePlayer.class.getName()).log(Level.SEVERE, null, ex);
-        }
+    private class WaveService extends Service<String> {
 
+        @Override
+        protected Task<String> createTask() {
+        return new Task<String>() {
+
+                @Override
+                protected String call() throws Exception {
+                    waveBox.generateWave();
+                    return "Ok";
+                }
+            
+        };
+       }
+        
+        
+    }
+    private void redrawSpectrum() {
+            waveService.start();
     }
 
     public MenuBar getMenuBar() {
