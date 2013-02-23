@@ -1,6 +1,6 @@
 
 .wave-line {
-    color: #F5A287;
+    -fx-stroke: linear-gradient(from 0% 50% to 0% 100%, reflect, white, black);
 }
 
 root { 

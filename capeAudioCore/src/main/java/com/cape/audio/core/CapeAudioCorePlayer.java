@@ -132,7 +132,7 @@ public class CapeAudioCorePlayer extends Application {
         Scene scene = new Scene(root, 800, 500);
         root.getChildren().addAll(getMenuBar(), mainBorderPane);
 
-        scene.getStylesheets().add("myStyles.css");
+        scene.getStylesheets().add("com/cape/audio/core/myStyles.css");
 
         primaryStage.setScene(scene);
         primaryStage.show();
