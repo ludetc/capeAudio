@@ -8,10 +8,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Map;
 import javax.sound.sampled.AudioFileFormat;
 import javax.sound.sampled.AudioFormat;
-import javax.sound.sampled.AudioFormat.Encoding;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.UnsupportedAudioFileException;
@@ -34,42 +34,42 @@ public class AudioAdapter
 
   public AudioAdapter()
   {
-    this.targetFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 44100.0F, 16, 2, 4, 44100.0F, false);
-    this.reader = new MpegAudioFileReader();
+    targetFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 44100.0F, 16, 2, 4, 44100.0F, false);
+    reader = new MpegAudioFileReader();
   }
 
   public String getSongTitle() {
-    return this.title;
+    return title;
   }
 
   public void load(File file) throws UnsupportedAudioFileException, IOException, BitstreamException {
     this.file = file;
-    if (this.convertedAudioInputStream != null) {
-      this.convertedAudioInputStream.close();
+    if (convertedAudioInputStream != null) {
+      convertedAudioInputStream.close();
     }
 
-    if (file.getName().toLowerCase().endsWith("mp3"))
-      this.sourceFileFormat = this.reader.getAudioFileFormat(file);
+    if (file.getName().toLowerCase().endsWith("mp3")) {
+          sourceFileFormat = reader.getAudioFileFormat(file);
+      }
     else {
-      this.sourceFileFormat = AudioSystem.getAudioFileFormat(file);
+      sourceFileFormat = AudioSystem.getAudioFileFormat(file);
     }
-    this.convertedAudioInputStream = getConvertedAudioInputStream();
+    convertedAudioInputStream = getConvertedAudioInputStream();
 
-    if ((this.sourceFileFormat instanceof TAudioFileFormat)) {
+    if ((sourceFileFormat instanceof TAudioFileFormat)) {
       Map properties = ((TAudioFileFormat)this.sourceFileFormat).properties();
       long val = ((Long)properties.get("duration")).longValue();
-      this.title = ((String)properties.get("title"));
-      this.songLengthInFrames = ((long)(val * 0.0441D));
+      title = ((String)properties.get("title"));
+      songLengthInFrames = ((long)(val * 0.0441D));
     } else {
-      this.title = file.getName();
-      this.songLengthInFrames = this.convertedAudioInputStream.getFrameLength();
+      title = file.getName();
+      songLengthInFrames = convertedAudioInputStream.getFrameLength();
     }
 
     this.headerTimeData = new ArrayList();
 
-    if ((this.sourceFileFormat instanceof TAudioFileFormat)) {
+    if ((sourceFileFormat instanceof TAudioFileFormat)) {
       int ms = 0;
-      int frames = 0;
       Bitstream bitstream = new Bitstream(new FileInputStream(file));
 
       int bytesRead = 0;
@@ -92,22 +92,23 @@ public class AudioAdapter
   }
 
   public long getFramePositionInBytes(long frame) {
-    if ((this.sourceFileFormat instanceof TAudioFileFormat)) {
-      for (HeaderTimeData h : this.headerTimeData) {
-        if (h.framesAccumulated > frame) {
-          return h.bytesAccumulated;
-        }
-      }
+    if ((sourceFileFormat instanceof TAudioFileFormat)) {
+          for (Iterator<HeaderTimeData> it = headerTimeData.iterator(); it.hasNext();) {
+              HeaderTimeData h = it.next();
+              if (h.framesAccumulated > frame) {
+                return h.bytesAccumulated;
+              }
+          }
     }
     return frame * 4L;
   }
 
   public AudioInputStream getConvertedAudioInputStream() throws UnsupportedAudioFileException, IOException {
-    if ((this.sourceFileFormat instanceof TAudioFileFormat)) {
-      return AudioSystem.getAudioInputStream(this.targetFormat, this.reader.getAudioInputStream(this.file));
+    if ((sourceFileFormat instanceof TAudioFileFormat)) {
+      return AudioSystem.getAudioInputStream(targetFormat, reader.getAudioInputStream(file));
     }
 
-    return AudioSystem.getAudioInputStream(this.targetFormat, AudioSystem.getAudioInputStream(this.file));
+    return AudioSystem.getAudioInputStream(targetFormat, AudioSystem.getAudioInputStream(file));
   }
 
   private class HeaderTimeData
