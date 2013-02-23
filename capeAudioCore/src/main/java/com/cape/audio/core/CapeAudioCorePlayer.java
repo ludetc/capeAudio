@@ -50,76 +50,74 @@ public class CapeAudioCorePlayer extends Application {
     private MediaPlayer mediaPlayer = null;
     private WaveService waveService = new WaveService();
 
-
     public HBox getMediaBar() {
-        
+
         final EventHandler<ActionEvent> backAction = new EventHandler<ActionEvent>() {
             @Override
-                public void handle(ActionEvent e) {
-                    mediaPlayer.seek(Duration.ZERO);
-                }
-            };
-            final EventHandler<ActionEvent> stopAction = new EventHandler<ActionEvent>() {
-                @Override
-                public void handle(ActionEvent e) {
-                    mediaPlayer.stop();
-                }
-            };
-            final EventHandler<ActionEvent> playAction = new EventHandler<ActionEvent>() {
-                @Override
-                public void handle(ActionEvent e) {
-                    mediaPlayer.play();
-                }
-            };
-            final EventHandler<ActionEvent> pauseAction = new EventHandler<ActionEvent>() {
-                @Override
-                public void handle(ActionEvent e) {
-                    mediaPlayer.pause();
-                }
-            };
-            final EventHandler<ActionEvent> forwardAction = new EventHandler<ActionEvent>() {
-                @Override
-                public void handle(ActionEvent e) {
-                    Duration currentTime = mediaPlayer.getCurrentTime();
-                    mediaPlayer.seek(Duration.seconds(currentTime.toSeconds() + 0.1));
-                }
-            };
-        
-                    HBox mediaBar = HBoxBuilder.create()
-                    .id("bottom")
-                    .spacing(0)
-                    .alignment(Pos.CENTER)
-                    .children(
-                        ButtonBuilder.create()
-                            .id("back-button")
-                            .text("Back")
-                            .onAction(backAction)
-                            .build(),
-                        ButtonBuilder.create()
-                            .id("stop-button")
-                            .text("Stop")
-                            .onAction(stopAction)
-                            .build(),
-                        ButtonBuilder.create()
-                            .id("play-button")
-                            .text("Play")
-                            .onAction(playAction)
-                            .build(),
-                        ButtonBuilder.create()
-                            .id("pause-button")
-                            .text("Pause")
-                            .onAction(pauseAction)
-                            .build(),
-                        ButtonBuilder.create()
-                            .id("forward-button")
-                            .text("Forward")
-                            .onAction(forwardAction)
-                            .build()
-                     )
-                    .build();
-                    return mediaBar;
+            public void handle(ActionEvent e) {
+                mediaPlayer.seek(Duration.ZERO);
+            }
+        };
+        final EventHandler<ActionEvent> stopAction = new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent e) {
+                mediaPlayer.stop();
+            }
+        };
+        final EventHandler<ActionEvent> playAction = new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent e) {
+                mediaPlayer.play();
+            }
+        };
+        final EventHandler<ActionEvent> pauseAction = new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent e) {
+                mediaPlayer.pause();
+            }
+        };
+        final EventHandler<ActionEvent> forwardAction = new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent e) {
+                Duration currentTime = mediaPlayer.getCurrentTime();
+                mediaPlayer.seek(Duration.seconds(currentTime.toSeconds() + 0.1));
+            }
+        };
+
+        HBox mediaBar = HBoxBuilder.create()
+                .id("bottom")
+                .spacing(0)
+                .alignment(Pos.CENTER)
+                .children(
+                ButtonBuilder.create()
+                .id("back-button")
+                .text("Back")
+                .onAction(backAction)
+                .build(),
+                ButtonBuilder.create()
+                .id("stop-button")
+                .text("Stop")
+                .onAction(stopAction)
+                .build(),
+                ButtonBuilder.create()
+                .id("play-button")
+                .text("Play")
+                .onAction(playAction)
+                .build(),
+                ButtonBuilder.create()
+                .id("pause-button")
+                .text("Pause")
+                .onAction(pauseAction)
+                .build(),
+                ButtonBuilder.create()
+                .id("forward-button")
+                .text("Forward")
+                .onAction(forwardAction)
+                .build())
+                .build();
+        return mediaBar;
     }
-    
+
     @Override
     public void start(final Stage primaryStage) {
         this.primaryStage = primaryStage;
@@ -143,24 +141,22 @@ public class CapeAudioCorePlayer extends Application {
 
         primaryStage.heightProperty().addListener(changeListener);
         primaryStage.widthProperty().addListener(changeListener);
-        
-        waveService.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
 
+        waveService.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
             @Override
             public void handle(WorkerStateEvent t) {
                 waveBox.redraw();
             }
-        
-        
         });
-        
+
 
     }
 
     private class OverallSizeChangeListener implements ChangeListener {
+
         @Override
         public void changed(ObservableValue ov, Object t, Object t1) {
-                redrawSpectrum();
+            redrawSpectrum();
         }
     }
 
@@ -168,21 +164,18 @@ public class CapeAudioCorePlayer extends Application {
 
         @Override
         protected Task<String> createTask() {
-        return new Task<String>() {
-
+            return new Task<String>() {
                 @Override
                 protected String call() throws Exception {
                     waveBox.generateWave();
                     return "Ok";
                 }
-            
-        };
-       }
-        
-        
+            };
+        }
     }
+
     private void redrawSpectrum() {
-            waveService.start();
+        waveService.start();
     }
 
     public MenuBar getMenuBar() {
@@ -214,7 +207,7 @@ public class CapeAudioCorePlayer extends Application {
                 } catch (UnsupportedAudioFileException | IOException | BitstreamException ex) {
                     Logger.getLogger(CapeAudioCorePlayer.class.getName()).log(Level.SEVERE, null, ex);
                 }
-                
+
                 if (mediaPlayer != null) {
                     mediaPlayer.stop();
                 }
